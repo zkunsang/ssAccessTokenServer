@@ -16,6 +16,8 @@ class GoogleAuthHelper {
         this.tokenStore = {};
         this.refreshInterval = configs.app.refreshInterval;
         this.intervalFunc = null;
+        this.refresh_token = null;
+        this.access_token = null;
     }
 
     generateAuthUrl() {
@@ -36,13 +38,19 @@ class GoogleAuthHelper {
         const refreshDate = new Date();
         try {
             const { tokens } = await this.oAuth2Client.getToken(code);
-            console.log(`[${configs.nodeEnv}:${refreshDate}] - ${this.tokenStore.access_token} -> ${tokens.access_token}`);
+            console.log(`[${configs.nodeEnv}:${refreshDate}]${tokens.access_token}`);
 
             this.oAuth2Client.setCredentials(tokens);
-            this.tokenStore = tokens;
+
+            if(tokens.refresh_token) {
+                this.refresh_token = tokens.refresh_token;
+                redisHelper.setRefreshToken(this.refresh_token);
+            }
             
-            redisHelper.publish(tokens.access_token);
-            redisHelper.set(tokens.access_token);
+            this.access_token = tokens.access_token;
+
+            redisHelper.publish(this.access_token);
+            redisHelper.setAccessToken(this.access_token);
         }
         catch(error) {
             slackHelper.sendMessage(error);
@@ -52,14 +60,14 @@ class GoogleAuthHelper {
     async refreshToken() {
         const refreshDate = new Date();
         try {
-            const { tokens } = await this.oAuth2Client.refreshToken(this.tokenStore.access_token);
-            console.log(`[${configs.nodeEnv}:${refreshDate}] - ${this.tokenStore.access_token} -> ${tokens.access_token}`);
+            const { tokens } = await this.oAuth2Client.refreshToken(this.refresh_token);
+            console.log(`[${configs.nodeEnv}][${refreshDate}][${this.refresh_token}] - ${this.access_token} -> ${tokens.access_token}`);
 
             this.oAuth2Client.setCredentials(tokens);
-            this.tokenStore = tokens;
+            this.access_token = tokens.access_token;
 
-            redisHelper.publish(tokens.access_token);
-            redisHelper.set(tokens.access_token);
+            redisHelper.publish(this.access_token);
+            redisHelper.setAccessToken(this.access_token);
         }
         catch(error) {
             slackHelper.sendMessage(`[${configs.nodeEnv}:${refreshDate}] - ${error}`);
@@ -73,7 +81,18 @@ class GoogleAuthHelper {
         }
         
         this.intervalFunc = setInterval(this.refreshToken.bind(this), this.refreshInterval);
-        
+    }
+
+    async init() {
+        this.refresh_token = await redisHelper.getRefreshToken();
+        this.access_token = await redisHelper.getAccessToken();
+
+        if(!this.refresh_token || !this.access_token) {
+            slackHelper.sendMessage(`[${configs.nodeEnv}][${new Date()}] - need auth request`);
+            return;
+        }
+
+        this.startRefresh();
     }
 }
 

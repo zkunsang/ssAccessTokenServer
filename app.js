@@ -24,6 +24,7 @@ router.get('/google/authredirect', async (ctx, next) => {
 app.use(router.routes())
 app.use(router.allowedMethods());
 
-app.listen(configs.app.port, () => {
-    console.info('Listen Server OK => ' + 'http:' + configs.app.port);
+app.listen(configs.app.port, async () => {
+    console.info('Listen Server OK => ' + 'port:' + configs.app.port);
+    await googleAuthHelper.init();
 })

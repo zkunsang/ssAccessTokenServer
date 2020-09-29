@@ -1,7 +1,10 @@
 const ioredis = require('ioredis');
 const configs = require('./configs.js');
 
-const googleAuthChannel = "googleAuth"
+const googleAuthChannel = 'googleAuth';
+const accessTokenKey = 'googleAuth';
+
+const refreshTokenKey = 'refreshToken';
 
 class RedisHelper {
     constructor() {
@@ -9,12 +12,24 @@ class RedisHelper {
         this.redis = new ioredis({ host, port })
     }
 
-    publish(refreshToken) {
-        this.redis.publish(googleAuthChannel, refreshToken);
+    publish(accessToken) {
+        this.redis.publish(googleAuthChannel, accessToken);
     }
 
-    async set(accessToken) {
-        await this.redis.set(googleAuthChannel, accessToken);
+    async setAccessToken(accessToken) {
+        await this.redis.set(accessTokenKey, accessToken);
+    }
+    
+    async getAccessToken() {
+        return await this.redis.get(accessTokenKey);
+    }
+
+    async setRefreshToken(refreshToken) {
+        await this.redis.set(refreshTokenKey, refreshToken);
+    }
+
+    async getRefreshToken() {
+        return await this.redis.get(refreshTokenKey);
     }
 }
 
