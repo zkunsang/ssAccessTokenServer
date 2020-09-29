@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node app.js"
+    "local": "env NODE_ENV=local pm2 start app.js",
+    "dev": "env NODE_ENV=dev pm2 start app.js"
   },
   "author": "",
   "license": "ISC",
