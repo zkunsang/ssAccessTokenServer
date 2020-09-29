@@ -1,5 +1,6 @@
 const Koa = require('koa');
 const Router = require('koa-router');
+const configs = require('./configs.js');
 
 const googleAuthHelper = require('./googleAuthHelper.js');
 
@@ -23,4 +24,6 @@ router.get('/google/authredirect', async (ctx, next) => {
 app.use(router.routes())
 app.use(router.allowedMethods());
 
-app.listen(53000)
+app.listen(configs.app.port, () => {
+    console.info('Listen Server OK => ' + 'http:' + configs.app.port);
+})

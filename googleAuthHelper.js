@@ -12,8 +12,9 @@ class GoogleAuthHelper {
             configs.googleOAuth2.redirect_url
         );
 
+        // 45 * 60 * 1000
         this.tokenStore = {};
-        this.refreshInterval = 45 * 60 * 1000;
+        this.refreshInterval = configs.app.refreshInterval;
         this.intervalFunc = null;
     }
 
