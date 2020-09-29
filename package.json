@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "local": "env NODE_ENV=local pm2 start app.js",
-    "dev": "env NODE_ENV=dev pm2 start app.js"
+    "local": "env NODE_ENV=local pm2 start app.js --name googleAuthRefresh",
+    "dev": "env NODE_ENV=dev pm2 start app.js --name googleAuthRefresh"
   },
   "author": "",
   "license": "ISC",
